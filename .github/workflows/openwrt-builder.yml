@@ -1,4 +1,4 @@
-name: Build ImmortalWrt for K2P
+name: Build ImmortalWrt for HC5861
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
   #   - cron: '0 20 * * 0'
 
 env:
-  REPO_URL: git clone https://github.com/coolsnowwolf/lede
+  REPO_URL: https://github.com/coolsnowwolf/lede
   REPO_BRANCH: openwrt-24.10
   CONFIG_FILE: configs/k2p.config
   DIY_PART1: scripts/diy-part1.sh
@@ -69,15 +69,12 @@ jobs:
           cd $HOME/openwrt
           make -j$(nproc) || make -j4 V=s
 
-      # ---- 步骤11：收集并上传固件（修正路径和缩进） ----
       - name: Collect firmware files
         run: |
           cd $HOME/openwrt
-          # 将文件复制到 GitHub Actions 默认能识别的工作区
           mkdir -p ${{ github.workspace }}/artifacts
           find bin -name "*.bin" -type f -exec cp {} ${{ github.workspace }}/artifacts/ \;
           
-          # 修正 if/else 的 shell 缩进，使其更易读
           if [ -z "$(ls -A ${{ github.workspace }}/artifacts)" ]; then
             echo "❌ 错误：没有找到任何 .bin 文件，编译可能失败！"
             exit 1
@@ -86,17 +83,13 @@ jobs:
             ls -lh ${{ github.workspace }}/artifacts/
           fi
 
-      # ---- 新增步骤：安全地生成日期变量 ----
       - name: Generate date variable
         run: |
           echo "BUILD_DATE=$(date +%Y%m%d)" >> $GITHUB_ENV
 
-      # ---- 步骤12：上传 Artifacts ----
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          # 使用上一步生成的日期变量
           name: K2P-ImmortalWrt-${{ env.BUILD_DATE }}
-          # 路径直接相对于 workspace
           path: artifacts/*.bin
           retention-days: 30
