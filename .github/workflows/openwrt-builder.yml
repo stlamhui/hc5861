@@ -1,4 +1,4 @@
-name: Build ImmortalWrt for HC5861
+name: Build ImmortalWrt for K2
 
 on:
   workflow_dispatch:
